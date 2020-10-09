@@ -246,6 +246,16 @@ void draw_box(image a, int x1, int y1, int x2, int y2, float r, float g, float b
 void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b)
 {
     int i;
+	FILE *p;
+	p = fopen("box.txt","w");
+	fprintf(p,"%d",x1);
+	fprintf(p,";");
+	fprintf(p,"%d",y1);
+	fprintf(p,";");
+	fprintf(p,"%d",x2);
+	fprintf(p,";");
+	fprintf(p,"%d",y2);
+	fclose(p);
     for(i = 0; i < w; ++i){
         draw_box(a, x1+i, y1+i, x2-i, y2-i, r, g, b);
     }
@@ -514,6 +524,7 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
             //    class_id, (right + left) / 2, (bot - top) / 2, right - left, bot - top);
 
             printf("\n");
+			
             draw_box_width(im, left, top, right, bot, width, red, green, blue);
             if (alphabet) {
                 image label = get_label(alphabet, names[class_id], (im.h*.03)/10);
