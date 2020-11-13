@@ -10,6 +10,8 @@
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
+#include <stdbool.h>
+#include <string.h>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -21,6 +23,7 @@
 #endif
 
 extern int check_mistakes;
+bool person = false;
 //int windows = 0;
 
 float colors[6][3] = { {1,0,1}, {0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0} };
@@ -246,19 +249,25 @@ void draw_box(image a, int x1, int y1, int x2, int y2, float r, float g, float b
 void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b)
 {
     int i;
-	FILE *p;
-	p = fopen("box.txt","w");
-	fprintf(p,"%d",x1);
-	fprintf(p,";");
-	fprintf(p,"%d",y1);
-	fprintf(p,";");
-	fprintf(p,"%d",x2);
-	fprintf(p,";");
-	fprintf(p,"%d",y2);
-	fclose(p);
+	
+	/*if (person){
+		person = false;
+		FILE *p;
+		p = fopen("prova.txt","w");
+		fprintf(p,"%d",x1);
+		fprintf(p,";");
+		fprintf(p,"%d",y1);
+		fprintf(p,";");
+		fprintf(p,"%d",x2);
+		fprintf(p,";");
+		fprintf(p,"%d",y2);
+		fclose(p);
+		}*/
+	
     for(i = 0; i < w; ++i){
         draw_box(a, x1+i, y1+i, x2-i, y2-i, r, g, b);
     }
+	
 }
 
 void draw_bbox(image a, box bbox, int w, float r, float g, float b)
@@ -336,6 +345,14 @@ int compare_by_probs(const void *a_ptr, const void *b_ptr) {
     return delta < 0 ? -1 : delta > 0 ? 1 : 0;
 }
 
+
+int stampa(bool var)
+{
+	if(var)
+		return 1;
+	else
+		return 0;
+}
 void draw_detections_v3(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes, int ext_output)
 {
     static int frame_id = 0;
@@ -444,6 +461,35 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             if (alphabet) {
                 char labelstr[4096] = { 0 };
                 strcat(labelstr, names[selected_detections[i].best_class]);
+				
+				/*FILE *file;
+				file = fopen("prova.txt","a");
+				fprintf(file,"%s" ,labelstr);
+				fprintf(file, "%s",";");
+				fprintf(file, "%d",left);
+				fprintf(file, "%s",";");
+				fprintf(file, "%d",top);
+				fprintf(file, "%s",";");
+				fprintf(file, "%d",right);
+				fprintf(file, "%s",";");
+				fprintf(file, "%d",bot);
+				fprintf(file, "%s","\n");
+				fclose(file);	*/	
+				
+				if (strcmp(labelstr,"person") == 0){
+					FILE *file;
+					file = fopen("box.txt","a");
+					fprintf(file, "%d",left);
+					fprintf(file, "%s",";");
+					fprintf(file, "%d",top);
+					fprintf(file, "%s",";");
+					fprintf(file, "%d",right);
+					fprintf(file, "%s",";");
+					fprintf(file, "%d",bot);
+					fclose(file);					
+				}
+				
+				
                 char prob_str[10];
                 sprintf(prob_str, ": %.2f", selected_detections[i].det.prob[selected_detections[i].best_class]);
                 strcat(labelstr, prob_str);
@@ -475,7 +521,7 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, char **names, image **alphabet, int classes)
 {
     int i;
-
+	
     for(i = 0; i < num; ++i){
         int class_id = max_index(probs[i], classes);
         float prob = probs[i][class_id];
@@ -519,12 +565,11 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
             if(top < 0) top = 0;
             if(bot > im.h-1) bot = im.h-1;
             printf("%s: %.0f%%", names[class_id], prob * 100);
-
+			
             //printf(" - id: %d, x_center: %d, y_center: %d, width: %d, height: %d",
             //    class_id, (right + left) / 2, (bot - top) / 2, right - left, bot - top);
-
-            printf("\n");
 			
+            printf("\n");
             draw_box_width(im, left, top, right, bot, width, red, green, blue);
             if (alphabet) {
                 image label = get_label(alphabet, names[class_id], (im.h*.03)/10);
